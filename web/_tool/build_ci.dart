@@ -13,12 +13,15 @@ main() async {
   final packageDirs = [
     ...listPackageDirs(Directory.current)
         .map((path) => p.relative(path, from: Directory.current.path))
+        .where((path) => ['material_3_demo', 'simplistic_editor'].contains(path))
         .where((path) => !ignoredDirectories.contains(path))
   ];
 
   print('Building the sample index...');
-  await _run('samples_index', 'pub', ['get']);
-  await _run('samples_index', 'pub', ['run', 'grinder', 'deploy']);
+  await _run('samples_index', 'dart', ['pub', 'get']);
+  await _run('samples_index', 'dart', ['pub', 'run', 'grinder', 'deploy']);
+
+  return;
 
   // Create the directory each Flutter Web sample lives in
   Directory(p.join(Directory.current.path, 'samples_index', 'public', 'web'))
@@ -38,8 +41,11 @@ main() async {
 
     // Build the sample and copy the files
     await _run(directory, 'flutter', ['pub', 'get']);
+    await _run(directory, 'flutter', ['clean']);
     await _run(directory, 'flutter', ['build', 'web']);
+    await _run(directory, 'rm', ['-rf', targetDirectory]);
     await _run(directory, 'mv', [sourceBuildDir, targetDirectory]);
+    await _run(directory, 'mv', ['$sourceBuildDir/.*', targetDirectory]);
   }
 
   // Update the <base href> tags in each index.html file
